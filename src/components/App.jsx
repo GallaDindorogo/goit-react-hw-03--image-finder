@@ -1,43 +1,39 @@
 import { Component } from 'react';
-import Button from './Button/Button';
-import MoviesGallery from './MoviesGallery/MoviesGallery';
-import Modal from './Modal/Modal';
+import Searchbar from './Searchbar/SearchBar';
+import ImageGallery from './ImageGallery/ImageGallery';
+// import Button from './Button/Button';
+// import MoviesGallery from './MoviesGallery/MoviesGallery';
+// import Modal from './Modal/Modal';
 
-import fetchMovies from 'services/MoviesAppi';
+import fetchImg from 'services/ImgAppi';
 
 export class App extends Component {
   state = {
-    isMoviesShow: false,
+    search: '',
+    items: [],
+    loading: false,
+    error: null,
     page: 1,
-    movies: [],
-    isLoading: false,
-    currentImage: null,
+    showModal: false,
+    modalImg: null,
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { isMoviesShow, page } = this.state;
-    if (
-      (prevState.isMoviesShow !== isMoviesShow && isMoviesShow) ||
-      (prevState.page !== page && isMoviesShow)
-    ) {
-      this.getMovies();
-    }
-    if (!isMoviesShow && isMoviesShow !== prevState.isMoviesShow) {
-      this.setState({ movies: [], page: 1 });
+    const { search, page } = this.state;
+    if (prevState.search !== search || prevState.page !== page) {
+      this.getImg();
     }
   }
 
-  showFilmsList = () => {
-    this.setState(prevState => ({ isMoviesShow: !prevState.isMoviesShow }));
+  searchImg = ({ search }) => {
+    this.setState({ search, items: [], page: 1 });
   };
 
-  getMovies = () => {
+  getImg = () => {
     this.setState({ isLoading: true });
-    fetchMovies(this.state.page)
-      .then(({ data: { results } }) => {
-        this.setState(prevState => ({
-          movies: [...prevState.movies, ...results],
-        }));
+    fetchImg(this.state.search, this.state.page)
+      .then(({ hits }) => {
+        this.setState(prevState => ({ items: [...prevState.items, ...hits] }));
       })
       .catch(error => console.error(error))
       .finally(() => this.setState({ isLoading: false }));
@@ -70,11 +66,13 @@ export class App extends Component {
   };
 
   render() {
-    const { showFilmsList } = this;
-    const { isMoviesShow, movies, currentImage } = this.state;
+    const { searchImg } = this;
+    const { items, isImgShow, movies, currentImage } = this.state;
     return (
       <div>
-        <Button
+        <Searchbar onSubmit={searchImg} />
+        <ImageGallery items={items} />
+        {/* <Button
           clickHandlrer={showFilmsList}
           text={isMoviesShow ? 'Hide Movies List' : 'Show Movies List'}
         />
@@ -86,7 +84,7 @@ export class App extends Component {
         )}
         {currentImage && (
           <Modal currentImage={currentImage} closeModal={this.closeModal} />
-        )}
+        )} */}
       </div>
     );
   }
